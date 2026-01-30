@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 
 export default function QRGenerator() {
   const [phone, setPhone] = useState(process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "");
-  const [defaultMessage, setDefaultMessage] = useState("Hola, quiero ver la carta");
+  const [defaultMessage, setDefaultMessage] = useState("Hola, quiero ver la carta de Delito Burguer Club!");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [waLink, setWaLink] = useState("");
 
