@@ -8,15 +8,20 @@ const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "qr-crm-verify";
 
 // Verificación del webhook (GET)
 export async function GET(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams;
-  const mode = searchParams.get("hub.mode");
-  const token = searchParams.get("hub.verify_token");
-  const challenge = searchParams.get("hub.challenge");
+  const url = new URL(req.url);
+  const mode = url.searchParams.get("hub.mode");
+  const token = url.searchParams.get("hub.verify_token");
+  const challenge = url.searchParams.get("hub.challenge");
+
+  console.log("Webhook verify:", { mode, token, challenge, VERIFY_TOKEN });
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
     return new NextResponse(challenge, { status: 200 });
   }
-  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  return NextResponse.json(
+    { error: "Forbidden", debug: { mode, token, expected: VERIFY_TOKEN } },
+    { status: 403 }
+  );
 }
 
 // Recibir mensajes (POST)
