@@ -7,19 +7,11 @@ export const dynamic = "force-dynamic";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "qr-crm-verify";
 
-
-const BURGER_MES_MSG = `🏆 *BURGER DEL MES* 🏆
-
-🔥 *LA ADICTIVA* 🔥
-Doble smash con doble cheddar, camembert, queso cabra, queso brie, queso azul y salsa de queso explosiva.
-
-¿Te atreves? 😈`;
-
 const SUBSCRIBE_MSG = `🎉 *¡ESTÁS DENTRO!*
 
 Ya formas parte del club. Vas a recibir:
 • 🔥 Promos exclusivas solo para ti
-• 🎁 Sorpresas el día de tu cumple
+• 🎁 Sorpresas el día de tu cumpe
 • 🍔 Novedades de la carta antes que nadie
 
 Esto va a ser un DELITO. 😈`;
@@ -27,6 +19,13 @@ Esto va a ser un DELITO. 😈`;
 const UNSUBSCRIBE_MSG = `👋 Sin problema, no recibirás más promos.
 
 Si cambias de opinión, escríbenos cuando quieras. ¡Aquí estaremos!`;
+
+async function getSettings(): Promise<Record<string, string>> {
+  const { data } = await supabase.from("settings").select("key, value");
+  const map: Record<string, string> = {};
+  if (data) for (const row of data) map[row.key] = row.value;
+  return map;
+}
 
 // Verificación del webhook (GET)
 export async function GET(req: NextRequest) {
@@ -77,6 +76,14 @@ export async function POST(req: NextRequest) {
     const { text, buttonId } = extractMessageText(msg);
 
     console.log(`Message from ${phone} (${name}): ${text} [buttonId: ${buttonId}]`);
+
+    // Fetch editable settings from DB
+    const settings = await getSettings();
+    const burgerMesTexto = settings["burger_mes_texto"] || "🏆 *BURGER DEL MES* 🏆\n\n🔥 Pregunta en barra 🔥";
+    const burgerMesImagen = settings["burger_mes_imagen"] || "https://qr-whatsapp-crm.vercel.app/burger-mes.png";
+    const cartaUrl = settings["carta_url"] || "https://qr-whatsapp-crm.vercel.app/carta.pdf";
+    const recomendacionesTexto = settings["recomendaciones"] || "";
+    const ofertasTexto = settings["ofertas"] || `🔥 *OFERTAS ACTIVAS* 🔥\n\n• 2x1 en Smash Burgers los martes\n• Combo Clásica + Patatas + Refresco por 12,90€\n• Trae a un amigo y tu postre gratis\n\n¡Aprovecha antes de que se acaben! 😈`;
 
     // Upsert del contacto
     const { data: existingContact, error: fetchError } = await supabase
@@ -131,7 +138,7 @@ export async function POST(req: NextRequest) {
           [
             { id: "btn_carta", title: "Ver carta 🍔" },
             { id: "btn_burger_mes", title: "Burger del mes 🏆" },
-            { id: "btn_ofertas", title: "Ver ofertas 🔥" },
+            { id: "btn_recomendaciones", title: "Recomendaciones 👨‍🍳" },
           ],
           "🍔 DELITO BURGER CLUB",
           "Escríbenos lo que quieras, ¡estamos aquí!"
@@ -147,17 +154,17 @@ export async function POST(req: NextRequest) {
       else if (buttonId === "btn_carta" || lowerText === "carta" || lowerText === "menu" || lowerText === "menú" || lowerText.includes("ver la carta") || lowerText.includes("quiero ver")) {
         await sendDocumentMessage(
           phone,
-          "https://qr-whatsapp-crm.vercel.app/carta.pdf",
+          cartaUrl,
           "Carta Delito Burger.pdf",
           "🔥 Aquí tienes nuestra carta completa. ¡Elige tu delito!"
         );
-        // Después de la carta, ofrecer botones de nuevo
         await sendButtonMessage(
           phone,
           "¿Algo más?",
           [
             { id: "btn_burger_mes", title: "Burger del mes 🏆" },
             { id: "btn_ofertas", title: "Ver ofertas 🔥" },
+            { id: "btn_recomendaciones", title: "Recomendaciones 👨‍🍳" },
           ],
         );
         await supabase.from("messages_log").insert({
@@ -171,21 +178,21 @@ export async function POST(req: NextRequest) {
       else if (buttonId === "btn_burger_mes") {
         await sendImageMessage(
           phone,
-          "https://qr-whatsapp-crm.vercel.app/burger-mes.png",
-          BURGER_MES_MSG
+          burgerMesImagen,
+          burgerMesTexto
         );
         await sendButtonMessage(
           phone,
           "¿Te apuntas al club para enterarte de estas cosas antes que nadie?",
           [
             { id: "btn_ofertas", title: "Ver ofertas 🔥" },
-            { id: "btn_carta", title: "Ver carta 🍔" },
+            { id: "btn_recomendaciones", title: "Recomendaciones 👨‍🍳" },
           ],
         );
         await supabase.from("messages_log").insert({
           contact_id: contactId,
           direction: "out",
-          content: BURGER_MES_MSG.slice(0, 500),
+          content: burgerMesTexto.slice(0, 500),
         });
       }
 
@@ -193,13 +200,7 @@ export async function POST(req: NextRequest) {
       else if (buttonId === "btn_ofertas") {
         if (existingContact?.subscribed) {
           // Ya suscrito, mostrar ofertas
-          await sendTextMessage(phone, `🔥 *OFERTAS ACTIVAS* 🔥
-
-• 2x1 en Smash Burgers los martes
-• Combo Clásica + Patatas + Refresco por 12,90€
-• Trae a un amigo y tu postre gratis
-
-¡Aprovecha antes de que se acaben! 😈`);
+          await sendTextMessage(phone, ofertasTexto);
           await supabase.from("messages_log").insert({
             contact_id: contactId,
             direction: "out",
@@ -233,13 +234,7 @@ export async function POST(req: NextRequest) {
           .eq("id", contactId);
         await sendTextMessage(phone, SUBSCRIBE_MSG);
         // Ahora que está suscrito, mostrar ofertas automáticamente
-        await sendTextMessage(phone, `🔥 *OFERTAS ACTIVAS* 🔥
-
-• 2x1 en Smash Burgers los martes
-• Combo Clásica + Patatas + Refresco por 12,90€
-• Trae a un amigo y tu postre gratis
-
-¡Aprovecha antes de que se acaben! 😈`);
+        await sendTextMessage(phone, ofertasTexto);
         await supabase.from("messages_log").insert({
           contact_id: contactId,
           direction: "out",
@@ -269,7 +264,27 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 7. Cualquier otro mensaje → IA responde como camarero
+      // 7. Botón "Recomendaciones"
+      else if (buttonId === "btn_recomendaciones") {
+        const msg = recomendacionesTexto || "🍔 Pregunta a nuestro equipo, ¡te ayudamos a elegir!";
+        await sendTextMessage(phone, msg);
+        await sendButtonMessage(
+          phone,
+          "¿Algo más?",
+          [
+            { id: "btn_carta", title: "Ver carta 🍔" },
+            { id: "btn_burger_mes", title: "Burger del mes 🏆" },
+            { id: "btn_ofertas", title: "Ver ofertas 🔥" },
+          ],
+        );
+        await supabase.from("messages_log").insert({
+          contact_id: contactId,
+          direction: "out",
+          content: "[Recomendaciones]",
+        });
+      }
+
+      // 8. Cualquier otro mensaje → IA responde como camarero
       else {
         const aiReply = await generateChatResponse(text);
         await sendTextMessage(phone, aiReply);
