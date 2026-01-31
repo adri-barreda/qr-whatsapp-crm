@@ -7,31 +7,6 @@ export const dynamic = "force-dynamic";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "qr-crm-verify";
 
-const CARTA_MSG = `🔥 *NUESTRA CARTA* 🔥
-
-🥩 *SMASH BURGERS*
-• La Clásica — Smash burger, queso cheddar, pepinillo, salsa delito — 8,50€
-• La Doble — Doble smash, doble cheddar, cebolla crujiente — 10,90€
-• La Trufa — Smash burger, queso brie, rúcula, mayo trufa — 11,50€
-• La BBQ — Smash burger, bacon, onion rings, salsa BBQ ahumada — 10,90€
-• La Vegana — Beyond Meat, cheddar vegano, lechuga, tomate — 10,50€
-
-🍟 *SIDES*
-• Patatas delito (salsa secreta) — 4,50€
-• Onion rings — 4,90€
-• Alitas (6 uds) — 6,90€
-• Nuggets caseros (8 uds) — 5,90€
-
-🥤 *BEBIDAS*
-• Refrescos — 2,50€
-• Cerveza artesana — 3,90€
-• Batido (vainilla/choco/fresa) — 4,50€
-
-🍰 *POSTRES*
-• Cookie monster — 3,90€
-• Brownie con helado — 4,90€
-
-📍 Pide en barra o escríbenos por aquí.`;
 
 const BURGER_MES_MSG = `🏆 *BURGER DEL MES* 🏆
 
