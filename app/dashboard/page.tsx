@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import StatsCards from "@/components/StatsCards";
 import RecentMessages from "@/components/RecentMessages";
@@ -8,6 +8,9 @@ import RecentMessages from "@/components/RecentMessages";
 export default function DashboardPage() {
   const [stats, setStats] = useState({ total: 0, subscribed: 0, campaigns: 0, messages: 0 });
   const [messagesOpen, setMessagesOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const [maxH, setMaxH] = useState(300);
 
   useEffect(() => {
     async function load() {
@@ -27,6 +30,14 @@ export default function DashboardPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (messagesOpen && messagesRef.current) {
+      const rect = messagesRef.current.getBoundingClientRect();
+      const available = window.innerHeight - rect.top - 24;
+      setMaxH(Math.max(available, 100));
+    }
+  }, [messagesOpen]);
+
   return (
     <div>
       <div className="mb-4">
@@ -39,7 +50,7 @@ export default function DashboardPage() {
         totalCampaigns={stats.campaigns}
         totalMessages={stats.messages}
       />
-      <div className="mt-6">
+      <div className="mt-6" ref={containerRef}>
         <button
           onClick={() => setMessagesOpen(!messagesOpen)}
           className="flex items-center gap-2 w-full text-left"
@@ -54,7 +65,11 @@ export default function DashboardPage() {
           <span className="text-xs text-[#555]">({stats.messages})</span>
         </button>
         {messagesOpen && (
-          <div className="mt-3 max-h-[40vh] overflow-y-auto">
+          <div
+            ref={messagesRef}
+            className="mt-3 overflow-y-auto"
+            style={{ maxHeight: `${maxH}px` }}
+          >
             <RecentMessages />
           </div>
         )}
