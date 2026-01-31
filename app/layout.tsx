@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Delito Burguer Club — CRM",
-  description: "CRM de WhatsApp para Delito Burguer Club",
+  title: "Delito Burger Club — CRM",
+  description: "CRM de WhatsApp para Delito Burger Club",
 };
 
 export default function RootLayout({

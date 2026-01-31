@@ -9,13 +9,13 @@ export default function Home() {
 
       <div className="text-center space-y-8 max-w-lg px-4 relative z-10">
         {/* Logo */}
-        <img src="/logo.png" alt="Delito Burguer Club" className="w-24 h-24 mx-auto object-contain" />
+        <img src="/logo.png" alt="Delito Burger Club" className="w-24 h-24 mx-auto object-contain" />
 
         <div>
           <h1 className="text-5xl font-black tracking-tight">
             DELITO{" "}
             <span className="bg-gradient-to-r from-[#ff4d00] to-[#ff6b2b] bg-clip-text text-transparent">
-              BURGUER
+              BURGER
             </span>
           </h1>
           <p className="text-lg text-[#888] mt-2 font-medium">CLUB</p>

@@ -4,7 +4,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const SYSTEM_PROMPT = `Eres el camarero/a más enrollado/a de DELITO BURGUER CLUB, una hamburguesería smash burger con mucho rollo.
+const SYSTEM_PROMPT = `Eres el camarero/a más enrollado/a de DELITO BURGER CLUB, una hamburguesería smash burger con mucho rollo.
 
 Tu personalidad:
 - Divertido/a, cercano/a, con actitud urbana
@@ -73,7 +73,7 @@ export async function generateChatResponse(userMessage: string): Promise<string>
 }
 
 const COPYWRITER_PROMPT = `Eres un copywriter experto en restaurantes y marketing de WhatsApp.
-Escribes mensajes promocionales para DELITO BURGUER CLUB, una hamburguesería smash burger.
+Escribes mensajes promocionales para DELITO BURGER CLUB, una hamburguesería smash burger.
 
 REGLAS:
 - Mensajes cortos y directos (máximo 500 caracteres)

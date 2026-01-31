@@ -62,7 +62,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="Delito" className="w-10 h-10 rounded-xl object-contain" />
           <div>
-            <h1 className="text-white font-bold text-sm">DELITO BURGUER</h1>
+            <h1 className="text-white font-bold text-sm">DELITO BURGER</h1>
             <p className="text-[#666] text-xs">CRM Panel</p>
           </div>
         </div>

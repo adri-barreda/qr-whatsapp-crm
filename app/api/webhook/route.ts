@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
             { id: "btn_burger_mes", title: "Burger del mes 🏆" },
             { id: "btn_ofertas", title: "Ver ofertas 🔥" },
           ],
-          "🍔 DELITO BURGUER CLUB",
+          "🍔 DELITO BURGER CLUB",
           "Escríbenos lo que quieras, ¡estamos aquí!"
         );
         await supabase.from("messages_log").insert({
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
         await sendDocumentMessage(
           phone,
           "https://qr-whatsapp-crm.vercel.app/carta.pdf",
-          "Carta Delito Burguer.pdf",
+          "Carta Delito Burger.pdf",
           "🔥 Aquí tienes nuestra carta completa. ¡Elige tu delito!"
         );
         // Después de la carta, ofrecer botones de nuevo

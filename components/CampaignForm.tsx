@@ -15,6 +15,7 @@ export default function CampaignForm() {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -148,13 +149,29 @@ export default function CampaignForm() {
         </>
       )}
 
-      <button
-        type="submit"
-        disabled={sending}
-        className="bg-[#ff4d00] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#ff6b2b] disabled:opacity-50 transition-all shadow-lg shadow-[#ff4d00]/10"
-      >
-        {sending ? "Enviando..." : "Enviar a todos los suscritos"}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          disabled={sending}
+          className="bg-[#ff4d00] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#ff6b2b] disabled:opacity-50 transition-all shadow-lg shadow-[#ff4d00]/10"
+        >
+          {sending ? "Enviando..." : "Enviar a todos los suscritos"}
+        </button>
+        {mode === "free" && message.trim() && (
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(message);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+              window.open("https://web.whatsapp.com", "_blank");
+            }}
+            className="bg-[#25D366] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#1da851] transition-all shadow-lg shadow-[#25D366]/10"
+          >
+            {copied ? "Copiado!" : "Publicar en Canal"}
+          </button>
+        )}
+      </div>
       {error && <p className="text-red-400 text-sm">{error}</p>}
       {result && (
         <p className="text-[#25D366] text-sm">

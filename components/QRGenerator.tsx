@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 
 export default function QRGenerator() {
   const [phone, setPhone] = useState(process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "");
-  const [defaultMessage, setDefaultMessage] = useState("Hola, quiero ver la carta de Delito Burguer Club!");
+  const [defaultMessage, setDefaultMessage] = useState("Hola, quiero ver la carta de Delito Burger Club!");
   const [waLink, setWaLink] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -54,7 +54,7 @@ export default function QRGenerator() {
     if (!canvasRef.current) return;
     const a = document.createElement("a");
     a.href = canvasRef.current.toDataURL("image/png");
-    a.download = "qr-delito-burguer.png";
+    a.download = "qr-delito-burger.png";
     a.click();
   }
 
@@ -84,7 +84,7 @@ export default function QRGenerator() {
           <div className="bg-[#111] border border-[#2a2a2a] rounded-2xl p-6 inline-block">
             <canvas ref={canvasRef} className="mx-auto rounded-lg" />
             <div className="mt-4 flex items-center justify-center gap-2">
-              <img src="/logo.png" alt="Delito Burguer Club" className="h-8" />
+              <img src="/logo.png" alt="Delito Burger Club" className="h-8" />
             </div>
           </div>
           <p className="text-xs text-[#555] break-all px-4">{waLink}</p>
