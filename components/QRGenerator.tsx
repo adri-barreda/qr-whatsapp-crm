@@ -1,30 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import QRCode from "qrcode";
 
 export default function QRGenerator() {
   const [phone, setPhone] = useState(process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "");
   const [defaultMessage, setDefaultMessage] = useState("Hola, quiero ver la carta de Delito Burguer Club!");
-  const [qrDataUrl, setQrDataUrl] = useState("");
   const [waLink, setWaLink] = useState("");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    if (!phone) return;
+  const generateQR = useCallback(async () => {
+    if (!phone || !canvasRef.current) return;
     const encoded = encodeURIComponent(defaultMessage);
     const link = `https://wa.me/${phone}?text=${encoded}`;
     setWaLink(link);
-    QRCode.toDataURL(link, {
+
+    const canvas = canvasRef.current;
+    await QRCode.toCanvas(canvas, link, {
       width: 400,
       margin: 2,
       color: { dark: "#ffffff", light: "#00000000" },
-    }).then(setQrDataUrl);
+      errorCorrectionLevel: "H",
+    });
+
+    // Draw logo in center
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const logo = new Image();
+    logo.crossOrigin = "anonymous";
+    logo.onload = () => {
+      const logoSize = canvas.width * 0.25;
+      const x = (canvas.width - logoSize) / 2;
+      const y = (canvas.height - logoSize) / 2;
+
+      // White circle background
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, logoSize / 2 + 8, 0, Math.PI * 2);
+      ctx.fillStyle = "#111111";
+      ctx.fill();
+
+      // Draw logo
+      ctx.drawImage(logo, x, y, logoSize, logoSize);
+    };
+    logo.src = "/logo.gif";
   }, [phone, defaultMessage]);
 
+  useEffect(() => {
+    generateQR();
+  }, [generateQR]);
+
   function downloadQR() {
-    if (!qrDataUrl) return;
+    if (!canvasRef.current) return;
     const a = document.createElement("a");
-    a.href = qrDataUrl;
+    a.href = canvasRef.current.toDataURL("image/png");
     a.download = "qr-delito-burguer.png";
     a.click();
   }
@@ -50,15 +79,12 @@ export default function QRGenerator() {
           className="w-full bg-[#111] border border-[#333] rounded-lg px-3 py-2 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#ff4d00]"
         />
       </div>
-      {qrDataUrl && (
+      {phone && (
         <div className="text-center space-y-4 pt-2">
           <div className="bg-[#111] border border-[#2a2a2a] rounded-2xl p-6 inline-block">
-            <img src={qrDataUrl} alt="QR WhatsApp" className="mx-auto rounded-lg" />
+            <canvas ref={canvasRef} className="mx-auto rounded-lg" />
             <div className="mt-4 flex items-center justify-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#ff4d00] to-[#ff6b2b] flex items-center justify-center text-white font-bold text-sm">
-                D
-              </div>
-              <span className="text-white font-bold text-sm">DELITO BURGUER CLUB</span>
+              <img src="/logo.gif" alt="Delito Burguer Club" className="h-8" />
             </div>
           </div>
           <p className="text-xs text-[#555] break-all px-4">{waLink}</p>

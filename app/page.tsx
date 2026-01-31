@@ -9,9 +9,7 @@ export default function Home() {
 
       <div className="text-center space-y-8 max-w-lg px-4 relative z-10">
         {/* Logo */}
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[#ff4d00] to-[#ff6b2b] flex items-center justify-center shadow-lg shadow-[#ff4d00]/20">
-          <span className="text-white font-black text-3xl">D</span>
-        </div>
+        <img src="/logo.gif" alt="Delito Burguer Club" className="w-24 h-24 mx-auto object-contain" />
 
         <div>
           <h1 className="text-5xl font-black tracking-tight">

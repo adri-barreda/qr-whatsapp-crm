@@ -60,9 +60,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-[#2a2a2a]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff4d00] to-[#ff6b2b] flex items-center justify-center text-white font-bold text-lg">
-            D
-          </div>
+          <img src="/logo.gif" alt="Delito" className="w-10 h-10 rounded-xl object-contain" />
           <div>
             <h1 className="text-white font-bold text-sm">DELITO BURGUER</h1>
             <p className="text-[#666] text-xs">CRM Panel</p>
