@@ -124,3 +124,29 @@ export async function sendImageMessage(
   }
   return res.json();
 }
+
+export async function sendDocumentMessage(
+  to: string,
+  documentUrl: string,
+  filename: string,
+  caption?: string
+) {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to,
+      type: "document",
+      document: { link: documentUrl, filename, caption },
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`WhatsApp API error: ${err}`);
+  }
+  return res.json();
+}

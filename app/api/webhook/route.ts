@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { sendTextMessage, sendButtonMessage } from "@/lib/whatsapp";
+import { sendTextMessage, sendButtonMessage, sendImageMessage, sendDocumentMessage } from "@/lib/whatsapp";
 import { generateChatResponse } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
@@ -35,10 +35,8 @@ const CARTA_MSG = `🔥 *NUESTRA CARTA* 🔥
 
 const BURGER_MES_MSG = `🏆 *BURGER DEL MES* 🏆
 
-🔥 *LA INFERNO* 🔥
-Doble smash burger, queso pepper jack, jalapeños crujientes, bacon ahumado, salsa inferno casera.
-
-*12,90€* (solo este mes)
+🔥 *LA ADICTIVA* 🔥
+Doble smash con doble cheddar, camembert, queso cabra, queso brie, queso azul y salsa de queso explosiva.
 
 ¿Te atreves? 😈`;
 
@@ -172,7 +170,12 @@ export async function POST(req: NextRequest) {
 
       // 2. Botón "Ver carta" o texto carta/menu
       else if (buttonId === "btn_carta" || lowerText === "carta" || lowerText === "menu" || lowerText === "menú" || lowerText.includes("ver la carta") || lowerText.includes("quiero ver")) {
-        await sendTextMessage(phone, CARTA_MSG);
+        await sendDocumentMessage(
+          phone,
+          "https://qr-whatsapp-crm.vercel.app/carta.pdf",
+          "Carta Delito Burguer.pdf",
+          "🔥 Aquí tienes nuestra carta completa. ¡Elige tu delito!"
+        );
         // Después de la carta, ofrecer botones de nuevo
         await sendButtonMessage(
           phone,
@@ -185,13 +188,17 @@ export async function POST(req: NextRequest) {
         await supabase.from("messages_log").insert({
           contact_id: contactId,
           direction: "out",
-          content: CARTA_MSG.slice(0, 500),
+          content: "[Carta PDF enviada]",
         });
       }
 
       // 3. Botón "Burger del mes"
       else if (buttonId === "btn_burger_mes") {
-        await sendTextMessage(phone, BURGER_MES_MSG);
+        await sendImageMessage(
+          phone,
+          "https://qr-whatsapp-crm.vercel.app/burger-mes.png",
+          BURGER_MES_MSG
+        );
         await sendButtonMessage(
           phone,
           "¿Te apuntas al club para enterarte de estas cosas antes que nadie?",
