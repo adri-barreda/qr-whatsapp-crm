@@ -9,7 +9,7 @@ export default function Home() {
 
       <div className="text-center space-y-8 max-w-lg px-4 relative z-10">
         {/* Logo */}
-        <img src="/logo.gif" alt="Delito Burguer Club" className="w-24 h-24 mx-auto object-contain" />
+        <img src="/logo.png" alt="Delito Burguer Club" className="w-24 h-24 mx-auto object-contain" />
 
         <div>
           <h1 className="text-5xl font-black tracking-tight">

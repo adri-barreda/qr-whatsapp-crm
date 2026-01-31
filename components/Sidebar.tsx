@@ -60,7 +60,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-[#2a2a2a]">
         <div className="flex items-center gap-3">
-          <img src="/logo.gif" alt="Delito" className="w-10 h-10 rounded-xl object-contain" />
+          <img src="/logo.png" alt="Delito" className="w-10 h-10 rounded-xl object-contain" />
           <div>
             <h1 className="text-white font-bold text-sm">DELITO BURGUER</h1>
             <p className="text-[#666] text-xs">CRM Panel</p>
