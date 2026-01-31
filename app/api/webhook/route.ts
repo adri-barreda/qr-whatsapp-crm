@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { sendTextMessage } from "@/lib/whatsapp";
+import { sendTextMessage, sendButtonMessage } from "@/lib/whatsapp";
 import { generateChatResponse } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "qr-crm-verify";
 
-const WELCOME_MSG = `🍔 *DELITO BURGUER CLUB* 🍔
-
-¡Bienvenido/a! Nos alegra que estés aquí.
-
-🔥 *NUESTRA CARTA* 🔥
+const CARTA_MSG = `🔥 *NUESTRA CARTA* 🔥
 
 🥩 *SMASH BURGERS*
 • La Clásica — Smash burger, queso cheddar, pepinillo, salsa delito — 8,50€
@@ -35,13 +31,16 @@ const WELCOME_MSG = `🍔 *DELITO BURGUER CLUB* 🍔
 • Cookie monster — 3,90€
 • Brownie con helado — 4,90€
 
-📍 Pide en barra o desde aquí mismo.
+📍 Pide en barra o escríbenos por aquí.`;
 
----
+const BURGER_MES_MSG = `🏆 *BURGER DEL MES* 🏆
 
-💥 *¿Quieres recibir PROMOS EXCLUSIVAS y enterarte antes que nadie de nuestras ofertas?*
+🔥 *LA INFERNO* 🔥
+Doble smash burger, queso pepper jack, jalapeños crujientes, bacon ahumado, salsa inferno casera.
 
-Responde *SI* y te avisamos. Solo cosas buenas, cero spam.`;
+*12,90€* (solo este mes)
+
+¿Te atreves? 😈`;
 
 const SUBSCRIBE_MSG = `🎉 *¡ESTÁS DENTRO!*
 
@@ -54,7 +53,7 @@ Esto va a ser un DELITO. 😈`;
 
 const UNSUBSCRIBE_MSG = `👋 Sin problema, no recibirás más promos.
 
-Si cambias de opinión, escríbenos *SI* cuando quieras. ¡Aquí estaremos!`;
+Si cambias de opinión, escríbenos cuando quieras. ¡Aquí estaremos!`;
 
 // Verificación del webhook (GET)
 export async function GET(req: NextRequest) {
@@ -67,6 +66,21 @@ export async function GET(req: NextRequest) {
     return new NextResponse(challenge, { status: 200 });
   }
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+// Extraer texto del mensaje (soporta texto normal y botones interactivos)
+function extractMessageText(msg: Record<string, unknown>): { text: string; buttonId: string | null } {
+  // Respuesta de botón interactivo
+  if (msg.type === "interactive") {
+    const interactive = msg.interactive as Record<string, unknown>;
+    if (interactive?.type === "button_reply") {
+      const reply = interactive.button_reply as { id: string; title: string };
+      return { text: reply.title, buttonId: reply.id };
+    }
+  }
+  // Mensaje de texto normal
+  const textObj = msg.text as { body?: string } | undefined;
+  return { text: textObj?.body || "", buttonId: null };
 }
 
 // Recibir mensajes (POST)
@@ -87,9 +101,9 @@ export async function POST(req: NextRequest) {
     const contact = value.contacts?.[0];
     const phone = msg.from;
     const name = contact?.profile?.name || null;
-    const text = msg.text?.body || "";
+    const { text, buttonId } = extractMessageText(msg);
 
-    console.log(`Message from ${phone} (${name}): ${text}`);
+    console.log(`Message from ${phone} (${name}): ${text} [buttonId: ${buttonId}]`);
 
     // Upsert del contacto
     const { data: existingContact, error: fetchError } = await supabase
@@ -132,39 +146,158 @@ export async function POST(req: NextRequest) {
       content: text,
     });
 
-    // Flujo automático
+    // --- Flujo con botones interactivos ---
     const lowerText = text.toLowerCase().trim();
 
-    let replyMsg = "";
-
-    if (isNew) {
-      replyMsg = WELCOME_MSG;
-    } else if (lowerText === "si" || lowerText === "sí" || lowerText === "si!" || lowerText === "sí!" || lowerText === "quiero" || lowerText === "suscribir" || lowerText === "suscribirme") {
-      await supabase
-        .from("contacts")
-        .update({ subscribed: true })
-        .eq("id", contactId);
-      replyMsg = SUBSCRIBE_MSG;
-    } else if (lowerText === "no" || lowerText === "baja" || lowerText === "cancelar" || lowerText === "no quiero") {
-      await supabase
-        .from("contacts")
-        .update({ subscribed: false })
-        .eq("id", contactId);
-      replyMsg = UNSUBSCRIBE_MSG;
-    } else if (lowerText === "carta" || lowerText === "menu" || lowerText === "menú" || lowerText.includes("ver la carta") || lowerText.includes("quiero ver")) {
-      replyMsg = WELCOME_MSG;
-    } else {
-      // IA responde como camarero
-      replyMsg = await generateChatResponse(text);
-    }
-
     try {
-      await sendTextMessage(phone, replyMsg);
-      await supabase.from("messages_log").insert({
-        contact_id: contactId,
-        direction: "out",
-        content: replyMsg.slice(0, 500),
-      });
+      // 1. Primer mensaje → Bienvenida con botones
+      if (isNew) {
+        await sendButtonMessage(
+          phone,
+          "¡Bienvenido/a! Nos alegra que estés aquí. ¿Qué te apetece?",
+          [
+            { id: "btn_carta", title: "Ver carta 🍔" },
+            { id: "btn_burger_mes", title: "Burger del mes 🏆" },
+            { id: "btn_ofertas", title: "Ver ofertas 🔥" },
+          ],
+          "🍔 DELITO BURGUER CLUB",
+          "Escríbenos lo que quieras, ¡estamos aquí!"
+        );
+        await supabase.from("messages_log").insert({
+          contact_id: contactId,
+          direction: "out",
+          content: "[Bienvenida con botones]",
+        });
+      }
+
+      // 2. Botón "Ver carta" o texto carta/menu
+      else if (buttonId === "btn_carta" || lowerText === "carta" || lowerText === "menu" || lowerText === "menú" || lowerText.includes("ver la carta") || lowerText.includes("quiero ver")) {
+        await sendTextMessage(phone, CARTA_MSG);
+        // Después de la carta, ofrecer botones de nuevo
+        await sendButtonMessage(
+          phone,
+          "¿Algo más?",
+          [
+            { id: "btn_burger_mes", title: "Burger del mes 🏆" },
+            { id: "btn_ofertas", title: "Ver ofertas 🔥" },
+          ],
+        );
+        await supabase.from("messages_log").insert({
+          contact_id: contactId,
+          direction: "out",
+          content: CARTA_MSG.slice(0, 500),
+        });
+      }
+
+      // 3. Botón "Burger del mes"
+      else if (buttonId === "btn_burger_mes") {
+        await sendTextMessage(phone, BURGER_MES_MSG);
+        await sendButtonMessage(
+          phone,
+          "¿Te apuntas al club para enterarte de estas cosas antes que nadie?",
+          [
+            { id: "btn_ofertas", title: "Ver ofertas 🔥" },
+            { id: "btn_carta", title: "Ver carta 🍔" },
+          ],
+        );
+        await supabase.from("messages_log").insert({
+          contact_id: contactId,
+          direction: "out",
+          content: BURGER_MES_MSG.slice(0, 500),
+        });
+      }
+
+      // 4. Botón "Ver ofertas" → Requiere suscripción
+      else if (buttonId === "btn_ofertas") {
+        if (existingContact?.subscribed) {
+          // Ya suscrito, mostrar ofertas
+          await sendTextMessage(phone, `🔥 *OFERTAS ACTIVAS* 🔥
+
+• 2x1 en Smash Burgers los martes
+• Combo Clásica + Patatas + Refresco por 12,90€
+• Trae a un amigo y tu postre gratis
+
+¡Aprovecha antes de que se acaben! 😈`);
+          await supabase.from("messages_log").insert({
+            contact_id: contactId,
+            direction: "out",
+            content: "[Ofertas activas]",
+          });
+        } else {
+          // No suscrito → pedir suscripción con botones
+          await sendButtonMessage(
+            phone,
+            "Para ver las ofertas exclusivas, necesitas unirte al club. ¡Es gratis y solo recibirás cosas buenas!",
+            [
+              { id: "btn_suscribir", title: "¡Me apunto! 🎉" },
+              { id: "btn_no_gracias", title: "No, gracias" },
+            ],
+            "🔒 OFERTAS EXCLUSIVAS",
+            "Cero spam, solo promos que molan."
+          );
+          await supabase.from("messages_log").insert({
+            contact_id: contactId,
+            direction: "out",
+            content: "[Solicitud suscripción para ver ofertas]",
+          });
+        }
+      }
+
+      // 5. Botón "Me apunto" → Suscribir
+      else if (buttonId === "btn_suscribir" || lowerText === "si" || lowerText === "sí" || lowerText === "si!" || lowerText === "sí!" || lowerText === "quiero" || lowerText === "suscribir" || lowerText === "suscribirme") {
+        await supabase
+          .from("contacts")
+          .update({ subscribed: true })
+          .eq("id", contactId);
+        await sendTextMessage(phone, SUBSCRIBE_MSG);
+        // Ahora que está suscrito, mostrar ofertas automáticamente
+        await sendTextMessage(phone, `🔥 *OFERTAS ACTIVAS* 🔥
+
+• 2x1 en Smash Burgers los martes
+• Combo Clásica + Patatas + Refresco por 12,90€
+• Trae a un amigo y tu postre gratis
+
+¡Aprovecha antes de que se acaben! 😈`);
+        await supabase.from("messages_log").insert({
+          contact_id: contactId,
+          direction: "out",
+          content: SUBSCRIBE_MSG.slice(0, 500),
+        });
+      }
+
+      // 6. Botón "No gracias" o baja
+      else if (buttonId === "btn_no_gracias" || lowerText === "no" || lowerText === "baja" || lowerText === "cancelar" || lowerText === "no quiero") {
+        await supabase
+          .from("contacts")
+          .update({ subscribed: false })
+          .eq("id", contactId);
+        await sendTextMessage(phone, UNSUBSCRIBE_MSG);
+        await sendButtonMessage(
+          phone,
+          "¿Puedo ayudarte con algo más?",
+          [
+            { id: "btn_carta", title: "Ver carta 🍔" },
+            { id: "btn_burger_mes", title: "Burger del mes 🏆" },
+          ],
+        );
+        await supabase.from("messages_log").insert({
+          contact_id: contactId,
+          direction: "out",
+          content: UNSUBSCRIBE_MSG,
+        });
+      }
+
+      // 7. Cualquier otro mensaje → IA responde como camarero
+      else {
+        const aiReply = await generateChatResponse(text);
+        await sendTextMessage(phone, aiReply);
+        await supabase.from("messages_log").insert({
+          contact_id: contactId,
+          direction: "out",
+          content: aiReply.slice(0, 500),
+        });
+      }
+
       console.log(`Reply sent to ${phone}`);
     } catch (err) {
       console.error(`Error sending reply to ${phone}:`, err);

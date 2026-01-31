@@ -59,6 +59,47 @@ export async function sendTemplateMessage(
   return res.json();
 }
 
+// Enviar mensaje interactivo con botones (reply buttons, máximo 3)
+export async function sendButtonMessage(
+  to: string,
+  bodyText: string,
+  buttons: Array<{ id: string; title: string }>,
+  headerText?: string,
+  footerText?: string
+) {
+  const interactive: Record<string, unknown> = {
+    type: "button",
+    body: { text: bodyText },
+    action: {
+      buttons: buttons.map((b) => ({
+        type: "reply",
+        reply: { id: b.id, title: b.title },
+      })),
+    },
+  };
+  if (headerText) interactive.header = { type: "text", text: headerText };
+  if (footerText) interactive.footer = { text: footerText };
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to,
+      type: "interactive",
+      interactive,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`WhatsApp API error: ${err}`);
+  }
+  return res.json();
+}
+
 export async function sendImageMessage(
   to: string,
   imageUrl: string,
