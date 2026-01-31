@@ -7,6 +7,7 @@ import ContactsTable from "@/components/ContactsTable";
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [filter, setFilter] = useState<"all" | "true" | "false">("all");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -19,21 +20,39 @@ export default function ContactsPage() {
     load();
   }, [filter]);
 
+  const filtered = contacts.filter(
+    (c) =>
+      (c.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      c.phone.includes(search)
+  );
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Contactos</h1>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as "all" | "true" | "false")}
-          className="border rounded-lg px-3 py-2 text-sm"
-        >
-          <option value="all">Todos</option>
-          <option value="true">Suscritos</option>
-          <option value="false">No suscritos</option>
-        </select>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Contactos</h1>
+          <p className="text-[#666] mt-1">{contacts.length} contactos en total</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar..."
+            className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#ff4d00] w-48"
+          />
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as "all" | "true" | "false")}
+            className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff4d00]"
+          >
+            <option value="all">Todos</option>
+            <option value="true">Suscritos</option>
+            <option value="false">No suscritos</option>
+          </select>
+        </div>
       </div>
-      <ContactsTable contacts={contacts} />
+      <ContactsTable contacts={filtered} />
     </div>
   );
 }

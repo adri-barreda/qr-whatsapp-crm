@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AIGenerateButton from "./AIGenerateButton";
 
 type Mode = "template" | "free";
 
@@ -12,9 +13,7 @@ export default function CampaignForm() {
   const [templateName, setTemplateName] = useState("hello_world");
   const [templateLang, setTemplateLang] = useState("en_US");
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<{ sent: number; failed: number } | null>(
-    null
-  );
+  const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -43,7 +42,7 @@ export default function CampaignForm() {
         setMediaUrl("");
       }
     } catch {
-      setError("Error de conexión");
+      setError("Error de conexion");
     } finally {
       setSending(false);
     }
@@ -52,16 +51,16 @@ export default function CampaignForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-xl shadow-sm border p-6 space-y-4 max-w-lg"
+      className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] p-6 space-y-4 max-w-lg"
     >
       <div className="flex gap-2">
         <button
           type="button"
           onClick={() => setMode("template")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             mode === "template"
-              ? "bg-green-600 text-white"
-              : "bg-gray-100 text-gray-700"
+              ? "bg-[#ff4d00] text-white"
+              : "bg-[#222] text-[#888] hover:text-white border border-[#333]"
           }`}
         >
           Plantilla aprobada
@@ -69,31 +68,29 @@ export default function CampaignForm() {
         <button
           type="button"
           onClick={() => setMode("free")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             mode === "free"
-              ? "bg-green-600 text-white"
-              : "bg-gray-100 text-gray-700"
+              ? "bg-[#ff4d00] text-white"
+              : "bg-[#222] text-[#888] hover:text-white border border-[#333]"
           }`}
         >
           Mensaje libre (solo 24h)
         </button>
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-[#555]">
         {mode === "template"
           ? "Las plantillas deben estar aprobadas en Meta Business. Funcionan en cualquier momento."
-          : "Los mensajes libres solo llegan si el cliente te escribió en las últimas 24h."}
+          : "Los mensajes libres solo llegan si el cliente te escribio en las ultimas 24h."}
       </p>
 
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Título de la campaña
-        </label>
+        <label className="block text-sm font-medium text-[#aaa] mb-1">Titulo de la campana</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border rounded-lg px-3 py-2 text-sm"
+          className="w-full bg-[#111] border border-[#333] rounded-lg px-3 py-2 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#ff4d00]"
           placeholder="Ej: Promo Fin de Semana"
         />
       </div>
@@ -101,27 +98,23 @@ export default function CampaignForm() {
       {mode === "template" ? (
         <>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Nombre de la plantilla
-            </label>
+            <label className="block text-sm font-medium text-[#aaa] mb-1">Nombre de la plantilla</label>
             <input
               type="text"
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm font-mono"
+              className="w-full bg-[#111] border border-[#333] rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-[#555] focus:outline-none focus:border-[#ff4d00]"
               placeholder="hello_world"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Idioma de la plantilla
-            </label>
+            <label className="block text-sm font-medium text-[#aaa] mb-1">Idioma de la plantilla</label>
             <input
               type="text"
               value={templateLang}
               onChange={(e) => setTemplateLang(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 text-sm font-mono"
+              className="w-full bg-[#111] border border-[#333] rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-[#555] focus:outline-none focus:border-[#ff4d00]"
               placeholder="es"
             />
           </div>
@@ -129,25 +122,26 @@ export default function CampaignForm() {
       ) : (
         <>
           <div>
-            <label className="block text-sm font-medium mb-1">Mensaje *</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-[#aaa]">Mensaje *</label>
+              <AIGenerateButton onGenerated={(text) => setMessage(text)} />
+            </div>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               required
               rows={4}
-              className="w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Escribe el mensaje de la promoción..."
+              className="w-full bg-[#111] border border-[#333] rounded-lg px-3 py-2 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#ff4d00]"
+              placeholder="Escribe el mensaje de la promocion..."
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              URL de imagen (opcional)
-            </label>
+            <label className="block text-sm font-medium text-[#aaa] mb-1">URL de imagen (opcional)</label>
             <input
               type="url"
               value={mediaUrl}
               onChange={(e) => setMediaUrl(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full bg-[#111] border border-[#333] rounded-lg px-3 py-2 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#ff4d00]"
               placeholder="https://ejemplo.com/promo.jpg"
             />
           </div>
@@ -157,13 +151,13 @@ export default function CampaignForm() {
       <button
         type="submit"
         disabled={sending}
-        className="bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+        className="bg-[#ff4d00] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#ff6b2b] disabled:opacity-50 transition-all shadow-lg shadow-[#ff4d00]/10"
       >
         {sending ? "Enviando..." : "Enviar a todos los suscritos"}
       </button>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p className="text-red-400 text-sm">{error}</p>}
       {result && (
-        <p className="text-green-700 text-sm">
+        <p className="text-[#25D366] text-sm">
           Enviado a {result.sent} contactos.{" "}
           {result.failed > 0 && `${result.failed} fallidos.`}
         </p>

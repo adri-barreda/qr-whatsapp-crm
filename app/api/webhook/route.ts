@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { sendTextMessage } from "@/lib/whatsapp";
+import { generateChatResponse } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
@@ -54,16 +55,6 @@ Esto va a ser un DELITO. 😈`;
 const UNSUBSCRIBE_MSG = `👋 Sin problema, no recibirás más promos.
 
 Si cambias de opinión, escríbenos *SI* cuando quieras. ¡Aquí estaremos!`;
-
-const DEFAULT_REPLY = `🍔 *DELITO BURGUER CLUB*
-
-¡Gracias por tu mensaje! Si necesitas algo:
-
-• Escribe *CARTA* para ver el menú
-• Escribe *SI* para recibir promos exclusivas
-• Escribe *NO* para darte de baja de promos
-
-¡O simplemente dinos en qué te podemos ayudar!`;
 
 // Verificación del webhook (GET)
 export async function GET(req: NextRequest) {
@@ -147,7 +138,6 @@ export async function POST(req: NextRequest) {
     let replyMsg = "";
 
     if (isNew) {
-      // Primer mensaje: bienvenida con carta completa
       replyMsg = WELCOME_MSG;
     } else if (lowerText === "si" || lowerText === "sí" || lowerText === "si!" || lowerText === "sí!" || lowerText === "quiero" || lowerText === "suscribir" || lowerText === "suscribirme") {
       await supabase
@@ -164,7 +154,8 @@ export async function POST(req: NextRequest) {
     } else if (lowerText === "carta" || lowerText === "menu" || lowerText === "menú" || lowerText.includes("ver la carta") || lowerText.includes("quiero ver")) {
       replyMsg = WELCOME_MSG;
     } else {
-      replyMsg = DEFAULT_REPLY;
+      // IA responde como camarero
+      replyMsg = await generateChatResponse(text);
     }
 
     try {
@@ -172,7 +163,7 @@ export async function POST(req: NextRequest) {
       await supabase.from("messages_log").insert({
         contact_id: contactId,
         direction: "out",
-        content: replyMsg.slice(0, 200),
+        content: replyMsg.slice(0, 500),
       });
       console.log(`Reply sent to ${phone}`);
     } catch (err) {

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({ subsets: ["latin"] });
+
 export const metadata: Metadata = {
-  title: "QR WhatsApp CRM",
-  description: "Captura contactos vía WhatsApp y envía promociones automáticas",
+  title: "Delito Burguer Club — CRM",
+  description: "CRM de WhatsApp para Delito Burguer Club",
 };
 
 export default function RootLayout({
@@ -12,8 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="bg-gray-50 text-gray-900 antialiased">{children}</body>
+    <html lang="es" className="dark">
+      <body className={`${inter.className} bg-[#0a0a0a] text-white antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
